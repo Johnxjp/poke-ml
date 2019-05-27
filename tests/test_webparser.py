@@ -1,7 +1,9 @@
 import pytest
 from bs4 import BeautifulSoup
 
-from pokegan.webparser import is_poketable, extract_pokemon_tables
+from pokegan.webparser import (
+    is_poketable, extract_pokemon_tables
+)
 
 
 def soupify(html: str):
