@@ -1,7 +1,7 @@
 import pytest
 from bs4 import BeautifulSoup
 
-from pokegan.webparser import (
+from src.webparser import (
     is_poketable, extract_pokemon_tables
 )
 
