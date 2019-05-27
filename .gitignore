@@ -5,6 +5,7 @@
 __pycache__
 .pytest_cache
 all_requirements.txt
+.ipynb_checkpoints
 
 # Data
 data

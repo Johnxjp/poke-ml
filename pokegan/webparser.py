@@ -76,10 +76,10 @@ if __name__ == "__main__":
     print(f"Num Tables: {len(all_tables)}")
     poke_info_list = [parse_poketable(table) for table in all_tables]
 
-    all_gen_handler = open("data/pokelists/all_generations.txt", 'w')
+    all_gen_handler = open("data/pokelists/all_generations.tsv", 'w')
     for gen, pokelist in enumerate(poke_info_list, 1):
 
-        gen_handler = open(f"data/pokelists/gen_{gen}.txt", 'w')
+        gen_handler = open(f"data/pokelists/gen_{gen}.tsv", 'w')
         for data in pokelist:
             if data.type_2 is None:
                 data_string = "\t".join(data[:-1])+"\n"
