@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from .helpers import deconv
 
 
 class BasicFCGenerator(nn.Module):
@@ -24,10 +25,23 @@ class BasicFCGenerator(nn.Module):
         return torch.tanh(self.out(x))
 
 
-class PokeTypeFCGenerator(nn.Module):
+class DCGenerator(nn.Module):
 
-    def __init__(self, noise_dim, n_types):
+    def __init__(self, z_size, conv_dim=32, is_greyscale=False):
         super().__init__()
+        kernel_size = 4
+        self.conv_dim = conv_dim
+        self.output_dim = 1 if is_greyscale else 3
+        self.fc = nn.Linear(z_size, conv_dim * 5 * 5 * 4)
+        self.tconv1 = deconv(conv_dim * 4, conv_dim * 2, kernel_size)
+        self.tconv2 = deconv(conv_dim * 2, conv_dim, kernel_size)
+        self.tconv3 = deconv(
+            conv_dim, self.output_dim, kernel_size, batch_norm=False)
 
     def forward(self, x):
-        pass
+        x = self.fc(x)
+        x = x.view(x.size(0), self.conv_dim * 4, 5, 5)
+        x = F.relu(self.tconv1(x))
+        x = F.relu(self.tconv2(x))
+        x = torch.tanh(self.tconv3(x))
+        return x
