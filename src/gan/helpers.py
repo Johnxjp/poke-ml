@@ -8,7 +8,7 @@ def deconv(
     kernel_size,
     stride=2,
     padding=1,
-    batch_norm=True
+    batch_norm=True,
 ):
     """
     New transpose convolutional layer with embedded batch norm
@@ -17,8 +17,12 @@ def deconv(
     layers = []
     layers.append(
         nn.ConvTranspose2d(
-            in_channels, out_channels, kernel_size, stride=stride,
-            padding=padding, bias=False
+            in_channels,
+            out_channels,
+            kernel_size,
+            stride=stride,
+            padding=padding,
+            bias=False,
         )
     )
 
@@ -34,7 +38,7 @@ def conv(
     kernel_size,
     stride=2,
     padding=1,
-    batch_norm=True
+    batch_norm=True,
 ):
     """
     New transpose convolutional layer with embedded batch norm
@@ -43,8 +47,12 @@ def conv(
     layers = []
     layers.append(
         nn.Conv2d(
-            in_channels, out_channels, kernel_size, stride=stride,
-            padding=padding, bias=False
+            in_channels,
+            out_channels,
+            kernel_size,
+            stride=stride,
+            padding=padding,
+            bias=False,
         )
     )
 
@@ -55,13 +63,13 @@ def conv(
 
 
 class GaussianNoise(nn.Module):
-    def __init__(self, stdev=0.1):
+    def __init__(self, mean=0, std=1):
         super().__init__()
-        self.stdev = stdev
-        self.noise = torch.tensor(0, requires_grad=False)
+        self.std = std
+        self.mean = mean
 
-    def foward(self, x):
+    def forward(self, x):
         if self.training:
-            noise = self.noise.repeat(*x.size()).normal_(std=self.stdev)
+            noise = torch.zeros_like(x).normal_(mean=0, std=self.std)
             return x + noise
         return x

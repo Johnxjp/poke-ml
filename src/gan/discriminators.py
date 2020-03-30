@@ -1,10 +1,10 @@
 import torch.nn as nn
 import torch.nn.functional as F
-from .helpers import conv, GaussianNoise
+from .helpers import conv as BatchNormConv
+from .helpers import GaussianNoise
 
 
 class FCDiscriminator(nn.Module):
-
     def __init__(self, input_dim, hidden_dim, output_dim, dropout):
         super().__init__()
 
@@ -26,25 +26,57 @@ class FCDiscriminator(nn.Module):
 
 
 class DCDiscriminator(nn.Module):
+    def __init__(
+        self,
+        input_h,
+        input_w,
+        n_layers=3,
+        kernel_size=4,
+        conv_dim=32,
+        padding=1,
+        is_rgb=True,
+    ):
+        """
+        Specify the input dimension of images. This is to compute the final
+        output size.
 
-    def __init__(self, conv_dim=32, is_greyscale=False):
+        Also, specify n_layers which is the number of convolutional operations
+        to perform.
+
+        conv_dim is the size multiplier of the output channels. The output
+        channels are doubled each layer starting at conv_dim
+        """
         super().__init__()
-        kernel_size = 4
-        self.noise = GaussianNoise(0.2)
-        self.conv_dim = conv_dim
-        self.input_dim = 1 if is_greyscale else 3
-        self.conv1 = conv(
-            self.input_dim, conv_dim, kernel_size, batch_norm=False)
-        self.conv2 = conv(conv_dim, conv_dim * 2, kernel_size)
-        self.conv3 = conv(conv_dim * 2, self.conv_dim * 4, kernel_size)
+        self.lrelu = nn.LeakyReLU(0.2)
+        self.conv_layers = nn.ModuleList([])
+        self.noise = GaussianNoise()
 
-        self.fc = nn.Linear(conv_dim * 5 * 5 * 4, 1)
+        input_channels = 3 if is_rgb else 1
+        output_channels = conv_dim
+
+        # WHAT A MESS! FIX
+        for i in range(n_layers):
+            batch_norm = True if i > 0 else False
+            layer = BatchNormConv(
+                input_channels,
+                output_channels,
+                kernel_size,
+                padding=padding,
+                batch_norm=batch_norm,
+            )
+            self.conv_layers.append(layer)
+            input_channels = output_channels
+            output_channels = output_channels * 2
+
+        # Height and width are halved each conv layer
+        output_w = input_w // (2 ** n_layers)
+        output_h = input_h // (2 ** n_layers)
+        fc_output_size = input_channels * output_h * output_w
+        self.fc = nn.Linear(fc_output_size, 1)
 
     def forward(self, x):
-        x = F.leaky_relu(self.conv1(x), 0.2)
-        x = F.leaky_relu(self.conv2(x), 0.2)
-        x = F.leaky_relu(self.conv3(x), 0.2)
+        x = self.noise(x)
+        for conv in self.conv_layers:
+            x = self.lrelu(conv(x))
         x = x.view(x.size(0), -1)
-        x = self.fc(x)
-
-        return x
+        return self.fc(x)
