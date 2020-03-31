@@ -1,8 +1,8 @@
-beautifulsoup4==4.7.1
-torch==1.1.0
-torchvision==0.3.0
-PIL==6.0.0
-numpy==1.16.3
+beautifulsoup4==4.8.2
+torch==1.4.0
+torchvision==0.5.0
+Pillow==6.2.0
+numpy==1.18.1
 jupyter==1.0.0
-matplotlib==3.1.0
-pandas==1.0.2
+matplotlib==3.1.2
+pandas==1.0.3
